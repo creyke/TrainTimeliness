@@ -8,6 +8,8 @@ namespace TrainTimeliness
         public string NationalRailDataPortalUsername { get; set; }
         public string NationalRailDataPortalPassword { get; set; }
         public string HspClientBaseUrl { get; set; }
+        public string DatabaseLocation { get; set; }
+        public bool RebuildDatabase { get; set; }
 
         public static Config Load(string file)
         {
