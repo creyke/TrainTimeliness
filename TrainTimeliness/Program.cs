@@ -1,8 +1,14 @@
-﻿using System;
+﻿using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using TrainTimeliness.Client;
 using TrainTimeliness.Client.Requests;
 using TrainTimeliness.Database;
+using TrainTimeliness.Model;
 
 namespace TrainTimeliness
 {
@@ -16,10 +22,19 @@ namespace TrainTimeliness
             {
                 await RebuildDatabaseAsync(config);
             }
+
+            if (config.RebuildModel)
+            {
+                await RebuildModelAsync(config);
+            }
+
+            Console.Read();
         }
 
         private static async Task RebuildDatabaseAsync(Config config)
         {
+            Console.WriteLine("RebuildDatabase:");
+
             var database = new TrainingDatabase();
 
             var client = new HspClient(config.HspClientBaseUrl, config.NationalRailDataPortalUsername, config.NationalRailDataPortalPassword);
@@ -35,8 +50,6 @@ namespace TrainTimeliness
                 to_time = "0840",
                 days = Days.WEEKDAY
             };
-
-            Console.WriteLine("RebuildDatabase:");
 
             Console.WriteLine($"  Requesting data...");
 
@@ -61,11 +74,41 @@ namespace TrainTimeliness
                 startDate = nextDay;
             }
 
-            Console.WriteLine($"  Saving data...");
+            Console.WriteLine($"  Saving database to '{config.DatabasePath}'...");
 
-            await database.SaveAsync(config.DatabaseLocation);
+            if (File.Exists(config.DatabasePath))
+            {
+                File.Delete(config.DatabasePath);
+            }
 
-            Console.WriteLine($"  Database rebuilt.");
+            await database.SaveAsync(config.DatabasePath);
+
+            Console.WriteLine("  Database rebuilt.");
+        }
+
+        private static async Task RebuildModelAsync(Config config)
+        {
+            Console.WriteLine("RebuildModel:");
+
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new TextLoader(config.DatabasePath).CreateFrom<TrainingDatabaseEntry>(useHeader: true, separator: ','));
+
+            var e = new TrainingDatabaseEntry();
+
+            pipeline.Add(new CategoricalOneHotVectorizer(nameof(e.global_tolerance)));
+
+            pipeline.Add(new ColumnConcatenator("Features", nameof(e.tolerance_value),nameof(e.num_not_tolerance),nameof(e.num_tolerance),nameof(e.percent_tolerance),nameof(e.global_tolerance), nameof(e.day_of_week)));
+
+            pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
+
+            var model = pipeline.Train<TrainingDatabaseEntry, TimelinessPrediction>();
+
+            Console.WriteLine($"  Saving model to '{config.ModelPath}'...");
+
+            await model.WriteAsync(config.ModelPath);
+
+            Console.WriteLine("  Model rebuilt.");
         }
     }
 }
