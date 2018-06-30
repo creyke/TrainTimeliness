@@ -96,9 +96,9 @@ namespace TrainTimeliness
 
             var e = new TrainingDatabaseEntry();
 
-            pipeline.Add(new CategoricalOneHotVectorizer(nameof(e.global_tolerance)));
+            pipeline.Add(new CategoricalOneHotVectorizer(nameof(e.globalTolerance)));
 
-            pipeline.Add(new ColumnConcatenator("Features", nameof(e.tolerance_value),nameof(e.num_not_tolerance),nameof(e.num_tolerance),nameof(e.percent_tolerance),nameof(e.global_tolerance), nameof(e.day_of_week)));
+            pipeline.Add(new ColumnConcatenator("Features", nameof(e.toleranceValue),nameof(e.numNotTolerance),nameof(e.numTolerance),nameof(e.percentTolerance),nameof(e.globalTolerance), nameof(e.dayOfWeek)));
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
 

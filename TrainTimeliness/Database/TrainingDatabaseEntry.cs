@@ -8,17 +8,17 @@ namespace TrainTimeliness.Database
     public class TrainingDatabaseEntry
     {
         [Column("0")]
-        public float tolerance_value;
+        public float toleranceValue;
         [Column("1")]
-        public float num_not_tolerance;
+        public float numNotTolerance;
         [Column("2")]
-        public float num_tolerance;
-        [Column("3")]
-        public float percent_tolerance;
+        public float numTolerance;
+        [Column(ordinal: "3", name: "Label")]
+        public float percentTolerance;
         [Column("4")]
-        public string global_tolerance;
+        public string globalTolerance;
         [Column("5")]
-        public float day_of_week;
+        public float dayOfWeek;
 
         public TrainingDatabaseEntry()
         {
@@ -27,12 +27,12 @@ namespace TrainTimeliness.Database
 
         public TrainingDatabaseEntry(Metric metric, DateTime date)
         {
-            tolerance_value = Convert.ToSingle(metric.tolerance_value);
-            num_not_tolerance = Convert.ToSingle(metric.num_not_tolerance);
-            num_tolerance = Convert.ToSingle(metric.num_tolerance);
-            percent_tolerance = Convert.ToSingle(metric.percent_tolerance);
-            global_tolerance = metric.global_tolerance.ToString();
-            this.day_of_week = Convert.ToSingle((int)date.DayOfWeek);
+            toleranceValue = Convert.ToSingle(metric.tolerance_value);
+            numNotTolerance = Convert.ToSingle(metric.num_not_tolerance);
+            numTolerance = Convert.ToSingle(metric.num_tolerance);
+            percentTolerance = Convert.ToSingle(metric.percent_tolerance);
+            globalTolerance = metric.global_tolerance.ToString();
+            this.dayOfWeek = Convert.ToSingle((int)date.DayOfWeek);
         }
 
         public override string ToString()
